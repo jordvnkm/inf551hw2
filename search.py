@@ -33,6 +33,27 @@ def get_path(inumber, directory_to_parent, tree):
     prefix_path = get_path(directory_to_parent[inumber], directory_to_parent, tree)
     return prefix_path + "/" + filename
 
+
+# gets a dictionary for metadata associated with the inumber
+def get_metadata(inumber, tree):
+    metadata = {}
+    path = '//INodeSection/inode[id="' + inumber + '"]'
+    for entry in tree.xpath(path):
+        for child in entry:
+            if child.tag == "id":
+                metadata["id"] = child.text
+            elif child.tag == "type":
+                metadata["type"] = child.text
+            elif child.tag == "mtime":
+                metadata["mtime"] = child.text
+            elif child.tag == "blocks":
+                blocks = []
+                for child_block in child:
+                    for block in child_block:
+                        if block.tag == "id":
+                            blocks.append(block.text)
+                metadata["blocks"] = blocks
+    return metadata
     
 
 # prints the valid paths by starting at valid inumbers and going up the directory heirarchy.
@@ -40,9 +61,10 @@ def get_path(inumber, directory_to_parent, tree):
 def print_valid_paths(valid_inumbers, directory_to_parent, xml_file):
     tree = etree.parse(xml_file)
     for valid_inumber in valid_inumbers:
-        print(valid_inumber + "\n")
         path = get_path(valid_inumber, directory_to_parent, tree)
         print(path + "\n")
+        metadata = get_metadata(valid_inumber, tree)
+        print(str(metadata) + "\n")
 
 
 
